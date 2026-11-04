@@ -1,0 +1,49 @@
+config,model,state,T_K,P_kPa,s_kJkgK,v_m3kg
+Simple,ideal,1,288.0,101.325,0.0,0.816157
+Simple,ideal,2,585.7739,1215.9,0.0,0.138334
+Simple,ideal,3,1400.0,1215.9,0.87565,0.330619
+Simple,ideal,4,688.3202,101.325,0.87565,1.950617
+Simple,real,1,288.0,101.325,0.0,0.816157
+Simple,real,2,638.3222,1215.9,0.086339,0.150744
+Simple,real,3,1400.0,1215.9,0.87565,0.330619
+Simple,real,4,773.7218,101.325,0.993193,2.192634
+Regeneration,ideal,1,288.0,101.325,0.0,0.816157
+Regeneration,ideal,2,585.7739,1215.9,0.0,0.138334
+Regeneration,ideal,x,688.3202,1215.9,0.162127,0.162551
+Regeneration,ideal,3,1400.0,1215.9,0.87565,0.330619
+Regeneration,ideal,4,688.3202,101.325,0.87565,1.950617
+Regeneration,ideal,y,585.7739,101.325,0.713523,1.660013
+Regeneration,real,1,288.0,101.325,0.0,0.816157
+Regeneration,real,2,638.3222,1215.9,0.086339,0.150744
+Regeneration,real,x,746.6419,1215.9,0.243865,0.176324
+Regeneration,real,3,1400.0,1215.9,0.87565,0.330619
+Regeneration,real,4,773.7218,101.325,0.993193,2.192634
+Regeneration,real,y,665.4021,101.325,0.841618,1.88567
+Intercooling,ideal,1,288.0,101.325,0.0,0.816157
+Intercooling,ideal,2a,410.7346,351.0001,0.0,0.33601
+Intercooling,ideal,2b,288.0,351.0001,-0.356762,0.235604
+Intercooling,ideal,2,410.7346,1215.9,-0.356762,0.096998
+Intercooling,ideal,3,1400.0,1215.9,0.87565,0.330619
+Intercooling,ideal,4,688.3202,101.325,0.87565,1.950617
+Intercooling,real,1,288.0,101.325,0.0,0.816157
+Intercooling,real,2a,432.3936,351.0001,0.051646,0.353728
+Intercooling,real,2b,288.0,351.0001,-0.356762,0.235604
+Intercooling,real,2,432.3936,1215.9,-0.305116,0.102113
+Intercooling,real,3,1400.0,1215.9,0.87565,0.330619
+Intercooling,real,4,773.7218,101.325,0.993193,2.192634
+Intercooling + Regeneration,ideal,1,288.0,101.325,0.0,0.816157
+Intercooling + Regeneration,ideal,2a,410.7346,351.0001,0.0,0.33601
+Intercooling + Regeneration,ideal,2b,288.0,351.0001,-0.356762,0.235604
+Intercooling + Regeneration,ideal,2,410.7346,1215.9,-0.356762,0.096998
+Intercooling + Regeneration,ideal,x,688.3202,1215.9,0.162127,0.162551
+Intercooling + Regeneration,ideal,3,1400.0,1215.9,0.87565,0.330619
+Intercooling + Regeneration,ideal,4,688.3202,101.325,0.87565,1.950617
+Intercooling + Regeneration,ideal,y,410.7346,101.325,0.356762,1.163972
+Intercooling + Regeneration,real,1,288.0,101.325,0.0,0.816157
+Intercooling + Regeneration,real,2a,432.3936,351.0001,0.051646,0.353728
+Intercooling + Regeneration,real,2b,288.0,351.0001,-0.356762,0.235604
+Intercooling + Regeneration,real,2,432.3936,1215.9,-0.305116,0.102113
+Intercooling + Regeneration,real,x,705.4562,1215.9,0.18684,0.166598
+Intercooling + Regeneration,real,3,1400.0,1215.9,0.87565,0.330619
+Intercooling + Regeneration,real,4,773.7218,101.325,0.993193,2.192634
+Intercooling + Regeneration,real,y,500.6592,101.325,0.55573,1.418808

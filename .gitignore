@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# MATLAB
+*.asv
+*.m~
+octave-workspace
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
