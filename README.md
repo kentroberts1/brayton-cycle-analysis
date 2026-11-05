@@ -81,6 +81,10 @@ Things I'd add next:
 - Pressure losses across the heat exchangers
 - Flight speed in the turbojet model, so propulsive efficiency can be included
 
+## Use of AI tools
+
+I used Claude, Anthropic's AI assistant, to help write and organize the Python and MATLAB code, the plots and this documentation. The analysis setup, results and conclusions are mine, and I verified the numbers as described above.
+
 ## References
 
 - Çengel & Boles, *Thermodynamics: An Engineering Approach*, gas power cycles chapter
