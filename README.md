@@ -1,15 +1,16 @@
 # Brayton Cycle Analysis
 
-A Thermodynamics I project looking at the Brayton cycle behind a turbojet engine, and how much two textbook modifications (regeneration and intercooling) actually help once you account for real compressor and turbine losses.
+A computational thermodynamics project examining the Brayton cycle behind a turbojet engine, and how much regeneration and intercooling actually help once you account for compressor and turbine losses.
 
-I compared four setups at a pressure ratio of 12 and a turbine inlet temperature of 1400 K:
+I compared four setups at a turbine inlet temperature of 1400 K and pressure ratio of 12:
 
 1. Simple cycle
 2. Regeneration
 3. Two-stage intercooling
 4. Intercooling + regeneration
 
-Each one is solved as an ideal cycle and as a real cycle (compressor efficiency 0.85, turbine efficiency 0.88, regenerator effectiveness 0.80). I also ran the turbojet version for static thrust and swept the pressure ratio from 2 to 40.
+Each one is solved as both an ideal cycle and real cycle. I also ran the turbojet version for static thrust and swept the pressure ratio from 2 to 40. 
+Initial values: compressor efficiency 0.85, turbine efficiency 0.88, regenerator effectiveness 0.80
 
 ## Results
 
@@ -22,13 +23,13 @@ Each one is solved as an ideal cycle and as a real cycle (compressor efficiency 
 
 ![Efficiency by configuration](figures/fig06_efficiency_bars.png)
 
-What stood out:
+Results and Analysis:
 
-- Real component losses alone drop the simple cycle from about 51% to 36%. Over half the turbine's work goes straight back into running the compressor.
-- Regeneration adds about 6 points of efficiency without changing net work. It just replaces some fuel heat with exhaust heat.
-- Intercooling by itself made efficiency slightly worse, even though net work went up 22%. The air leaves the compressor colder, so the combustor has to add more heat.
-- Combining the two works much better than either alone: 36.2% up to 48.6%. The colder compressed air gives the regenerator a bigger temperature difference to work with (273 K of preheat vs 108 K without intercooling).
-- Regeneration only helps up to a pressure ratio of about 17. Past that, the turbine exhaust is colder than the compressor exit. Intercooling pushes that limit past 40.
+- Real component losses drop the simple cycle efficiency from about 51% to 36%. Over half the turbine's work goes into running the compressor.
+- Regeneration adds about 6% of efficiency without changing net work.
+- Intercooling by itself surprisingly decreased efficiency, even though net work went up 22%. This is due to air leaving the compressor colder, leading to more required heat addition from the combustor.
+- Combining intercooling and regeneration is much better than either alone, increasing efficiency from 36.2% to 48.6%. This stems from colder compressed air giving the regenerator a bigger temperature difference to work with (273 K vs 108 K without intercooling).
+- Regeneration only helps up to a pressure ratio of about 17. Past that, the turbine exhaust is colder than the compressor exit.
 - For the turbojet, intercooling gave about 10% more specific thrust but about 15% worse fuel consumption per unit thrust.
 
 ### T-s and P-v diagrams (intercooling + regeneration)
@@ -51,7 +52,7 @@ results/                     CSV output and formatted tables
 figures/                     the nine plots
 ```
 
-I split it this way so the calculations and the plotting could be checked separately. If a number is wrong it's a Python problem; if a plot looks wrong it's a MATLAB problem.
+Splitting the process up rather then using only Python or only MATLAB allows for ease of troubleshooting. Issues in numerical results leads to finding the problem in Python, while plotting issues can be fixed in MATLAB.
 
 ## Running it
 
@@ -59,13 +60,13 @@ I split it this way so the calculations and the plotting could be checked separa
 python python/brayton_numbers.py
 ```
 
-Then in MATLAB (R2019b or newer, no toolboxes needed):
+Then in MATLAB:
 
 ```matlab
 run('matlab/brayton_figures.m')
 ```
 
-Run the Python script first. To try a different operating point, change the inputs near the top of `brayton_numbers.py` and rerun both.
+Run the Python script first. To try a different initial condition, change the inputs near the top of and rerun both.
 
 ## Checking the numbers
 
@@ -73,7 +74,7 @@ Before trusting the code I worked the simple, regenerative and intercooled cycle
 
 ## Assumptions and limitations
 
-This uses cold-air-standard assumptions: constant specific heats (cp = 1.005 kJ/kg·K, k = 1.4), combustion modeled as constant-pressure heat addition, no fuel mass, and no pressure losses in the combustor or heat exchangers. All of that makes the efficiencies a bit optimistic. I wouldn't expect it to change which configuration comes out ahead.
+This uses cold-air-standard assumptions: constant specific heats (cp = 1.005 kJ/kg·K, k = 1.4), combustion modeled as constant-pressure heat addition, no fuel mass, and no pressure losses in the combustor or heat exchangers. All of that makes the efficiencies a bit optimistic, but I wouldn't expect it to change which configuration comes out ahead.
 
 Things I'd add next:
 
@@ -84,8 +85,3 @@ Things I'd add next:
 ## Use of AI tools
 
 I used Claude, Anthropic's AI assistant, to help write and organize the Python and MATLAB code, the plots and this documentation. The analysis setup, results and conclusions are mine, and I verified the numbers as described above.
-
-## References
-
-- Çengel & Boles, *Thermodynamics: An Engineering Approach*, gas power cycles chapter
-- Moran, Shapiro et al., *Fundamentals of Engineering Thermodynamics*
