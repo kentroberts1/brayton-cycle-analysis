@@ -1,41 +1,37 @@
 %% brayton_figures.m
-% Brayton cycle analysis: FIGURES AND TABLES  (Thermodynamics I level)
+% Plots and tables for the Brayton cycle study. No thermodynamics happens
+% here; this just reads the CSVs in ../results (written by
+% python/brayton_numbers.py) and writes figures to ../figures.
 %
-% This script does no thermodynamics of its own. It reads the CSV files written by
-% brayton_numbers.py and turns them into report figures and tables.
-%
-% Before running:
-%   1. Run  python brayton_numbers.py  in this same folder
-%   2. Make sure cycle_path.m is in this same folder
-%
-% Outputs:
-%   figures/fig01_simple.png ... fig09_jet.png   (report figures)
-%   tables.txt                                   (report tables, also printed below)
+% Run the Python script first, then run this from anywhere.
 
 clear; clc; close all;
 
-%% 1. LOAD THE PYTHON RESULTS ---------------------------------------------------------
-in = readtable('inputs.csv');
+root = fileparts(fileparts(mfilename('fullpath')));
+resultsDir = fullfile(root, 'results');
+figDir = fullfile(root, 'figures');
+if ~exist(figDir, 'dir'), mkdir(figDir); end
+
+%% Load results
+in = readtable(fullfile(resultsDir, 'inputs.csv'));
 cp = in.cp;  R = in.R;  T1 = in.T1;  P1 = in.P1;  T3 = in.T3;  rp = in.rp;
 
 % Text columns are forced to 'char' so state names like "2a" and "x" are not read as numbers
-opts = detectImportOptions('state_points.csv');
+opts = detectImportOptions(fullfile(resultsDir, 'state_points.csv'));
 opts = setvartype(opts, {'config', 'model', 'state'}, 'char');
-S = readtable('state_points.csv', opts);
+S = readtable(fullfile(resultsDir, 'state_points.csv'), opts);
 
-opts = detectImportOptions('results_summary.csv');
+opts = detectImportOptions(fullfile(resultsDir, 'results_summary.csv'));
 opts = setvartype(opts, {'config', 'model'}, 'char');
-RS = readtable('results_summary.csv', opts);
+RS = readtable(fullfile(resultsDir, 'results_summary.csv'), opts);
 
-W = readtable('rp_sweep.csv');
+W = readtable(fullfile(resultsDir, 'rp_sweep.csv'));
 
-opts = detectImportOptions('jet_results.csv');
+opts = detectImportOptions(fullfile(resultsDir, 'jet_results.csv'));
 opts = setvartype(opts, {'config'}, 'char');
-J = readtable('jet_results.csv', opts);
+J = readtable(fullfile(resultsDir, 'jet_results.csv'), opts);
 
-if ~exist('figures', 'dir'), mkdir('figures'); end
-
-%% 2. SETTINGS -------------------------------------------------------------------------
+%% Settings
 configs  = {'Simple', 'Regeneration', 'Intercooling', 'Intercooling + Regeneration'};
 fileTags = {'simple', 'regen', 'intercool', 'ic_regen'};
 % Order the state points go around each cycle
@@ -64,7 +60,7 @@ getTP = @(cfg, mdl, st) deal( ...
     S.P_kPa(strcmp(S.config, cfg) & strcmp(S.model, mdl) & strcmp(S.state, st)));
 rowOf = @(cfg, mdl) find(strcmp(RS.config, cfg) & strcmp(RS.model, mdl));
 
-%% 3. FIGURES 1-4: T-s AND P-v DIAGRAM FOR EACH CONFIGURATION -------------------------
+%% T-s and P-v diagrams, one figure per configuration
 for c = 1:4
     cfg = configs{c};
     ord = orders{c};
@@ -201,10 +197,10 @@ for c = 1:4
         cfg, rp, T1, T3, RS.eta_pct(iI), RS.eta_pct(iR)), ...
         'EdgeColor', 'none', 'HorizontalAlignment', 'center', 'FontSize', 14, 'FontWeight', 'bold');
 
-    print(fig, fullfile('figures', sprintf('fig%02d_%s.png', c, fileTags{c})), '-dpng', '-r150');
+    print(fig, fullfile(figDir, sprintf('fig%02d_%s.png', c, fileTags{c})), '-dpng', '-r150');
 end
 
-%% 4. FIGURE 5: ALL IDEAL CYCLES OVERLAID ---------------------------------------------
+%% All ideal cycles overlaid
 fig = figure('Color', 'w', 'Position', [50 50 1500 620]);
 lw = [6 4.5 3 1.6];                    % thick-to-thin so overlapping loops stay visible
 for panel = 1:2
@@ -225,9 +221,9 @@ for panel = 1:2
         title('P-v, all configurations (ideal)');
     end
 end
-print(fig, fullfile('figures', 'fig05_overlay.png'), '-dpng', '-r150');
+print(fig, fullfile(figDir, 'fig05_overlay.png'), '-dpng', '-r150');
 
-%% 5. FIGURE 6: EFFICIENCY BAR CHART --------------------------------------------------
+%% Efficiency bar chart
 etaI = zeros(1, 4); etaR = etaI;
 for c = 1:4
     etaI(c) = RS.eta_pct(rowOf(configs{c}, 'ideal'));
@@ -245,9 +241,9 @@ set(gca, 'XTick', 1:4, 'XTickLabel', {'Simple', 'Regen', 'Intercool', 'IC + Rege
 ylim([0 75]); ylabel('Thermal efficiency, \eta_{th}  [%]');
 legend({'Ideal', 'Real'}, 'Location', 'northwest');
 title(sprintf('Thermal efficiency by configuration (r_p = %g, T_3 = %g K)', rp, T3));
-print(fig, fullfile('figures', 'fig06_efficiency_bars.png'), '-dpng', '-r150');
+print(fig, fullfile(figDir, 'fig06_efficiency_bars.png'), '-dpng', '-r150');
 
-%% 6. FIGURE 7: EFFICIENCY vs PRESSURE RATIO ------------------------------------------
+%% Efficiency vs pressure ratio
 tags = {'Simple', 'Regeneration', 'Intercooling', 'Intercooling_Regeneration'};
 fig = figure('Color', 'w', 'Position', [50 50 1500 600]);
 models = {'ideal', 'real'};
@@ -267,9 +263,9 @@ for panel = 1:2
     title(sprintf('%s cycle efficiency vs r_p (T_3 = %g K)', [upper(models{panel}(1)) models{panel}(2:end)], T3));
     legend('Location', 'southeast');
 end
-print(fig, fullfile('figures', 'fig07_eta_vs_rp.png'), '-dpng', '-r150');
+print(fig, fullfile(figDir, 'fig07_eta_vs_rp.png'), '-dpng', '-r150');
 
-%% 7. FIGURE 8: NET WORK vs PRESSURE RATIO --------------------------------------------
+%% Net work vs pressure ratio
 fig = figure('Color', 'w', 'Position', [50 50 1000 600]); hold on; box on; grid on;
 set(gca, 'GridColor', GRID, 'FontSize', 11);
 for c = [1 3]      % regeneration does not change net work, so only these two are needed
@@ -282,9 +278,9 @@ yl = ylim; plot([rp rp], yl, '--', 'Color', [0.5 0.5 0.5], 'HandleVisibility', '
 xlabel('Pressure ratio, r_p'); ylabel('Net work, w_{net}  [kJ/kg]');
 title('Net work vs r_p (regeneration leaves w_{net} unchanged)');
 legend('Location', 'southeast');
-print(fig, fullfile('figures', 'fig08_wnet_vs_rp.png'), '-dpng', '-r150');
+print(fig, fullfile(figDir, 'fig08_wnet_vs_rp.png'), '-dpng', '-r150');
 
-%% 8. FIGURE 9: TURBOJET THRUST AND FUEL CONSUMPTION -----------------------------------
+%% Turbojet thrust and TSFC
 fig = figure('Color', 'w', 'Position', [50 50 1200 520]);
 subplot(1, 2, 1);
 b = bar(J.spec_thrust_Nperkgs, 0.55); set(b, 'FaceColor', C(1,:), 'EdgeColor', 'w'); grid on;
@@ -302,10 +298,10 @@ for i = 1:numel(J.tsfc_mgNs)
 end
 ylim([0 1.2*max(J.tsfc_mgNs)]);
 ylabel('TSFC  [mg fuel per N-s]'); title('Thrust-specific fuel consumption (lower is better)');
-print(fig, fullfile('figures', 'fig09_jet.png'), '-dpng', '-r150');
+print(fig, fullfile(figDir, 'fig09_jet.png'), '-dpng', '-r150');
 
-%% 9. TABLES (printed to the Command Window AND saved to tables.txt) ------------------
-fid = fopen('tables.txt', 'w');
+%% Tables (Command Window + results/tables.txt)
+fid = fopen(fullfile(resultsDir, 'tables.txt'), 'w');
 for out = [1 fid]          % 1 = Command Window, fid = file
     fprintf(out, 'TABLE 1. Input parameters\n');
     fprintf(out, '  cp = %.3f kJ/kg-K   k = %.2f   R = %.3f kJ/kg-K\n', cp, in.k, R);
@@ -356,4 +352,4 @@ for out = [1 fid]          % 1 = Command Window, fid = file
     fprintf(out, '\n');
 end
 fclose(fid);
-disp('Saved figures/fig01-fig09 and tables.txt');
+fprintf('Figures saved to %s\nTables saved to %s\n', figDir, fullfile(resultsDir, 'tables.txt'));

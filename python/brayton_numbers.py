@@ -1,31 +1,23 @@
 """
-brayton_numbers.py
-------------------
-Brayton cycle analysis of a gas turbine / turbojet  (Thermodynamics I level)
+Brayton cycle analysis for a turbojet / gas turbine.
 
-What it does
-  1. Solves four cycle configurations, each as an ideal and a real cycle:
-        Simple, Regeneration, Intercooling, Intercooling + Regeneration
-  2. Solves the turbojet version (sea-level static) for thrust and fuel use
-  3. Sweeps the pressure ratio from 2 to 40
-  4. Prints the results and writes four CSV files for the MATLAB plotting program
+Solves four configurations (simple, regeneration, intercooling, and
+intercooling + regeneration) as ideal and real cycles, a sea-level static
+turbojet case, and a pressure-ratio sweep from 2 to 40. Results go to
+../results as CSV files, which matlab/brayton_figures.m turns into plots.
 
-Assumptions (cold-air-standard)
-  - Air is an ideal gas with constant cp and k (room-temperature values)
-  - Combustion is modeled as constant-pressure heat addition; fuel mass is ignored
-  - No pressure drops in the combustor, intercooler or regenerator
-  - Kinetic and potential energy changes are neglected (except in the nozzle)
-  - Two-stage intercooling uses equal pressure ratios and cools back to T1
+Cold-air-standard assumptions: constant cp and k, combustion as
+constant-pressure heat addition, no fuel mass, no pressure losses.
 
-Run:  python brayton_numbers.py
-Out:  results_summary.csv, state_points.csv, rp_sweep.csv, jet_results.csv
+Usage:  python brayton_numbers.py
 """
 import csv
 import math
+from pathlib import Path
 
-# =============================================================================
-# 1. INPUTS  (change these to run your own case)
-# =============================================================================
+RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
+
+# --- Inputs (edit these to run a different case) ---
 cp = 1.005          # kJ/kg-K, specific heat of air at constant pressure
 k = 1.4             # -, specific heat ratio of air
 R = cp * (k - 1) / k   # kJ/kg-K, gas constant (= 0.287 for air)
@@ -45,9 +37,7 @@ LHV = 43000.0       # kJ/kg, lower heating value of jet fuel (jet mode)
 EXP = (k - 1) / k   # the exponent that shows up in every isentropic relation
 
 
-# =============================================================================
-# 2. COMPONENT FUNCTIONS  (one function per piece of hardware)
-# =============================================================================
+# --- Components ---
 def compressor(T_in, pr, eff):
     """Adiabatic compressor.  Returns exit temperature (K) and work in (kJ/kg).
     Isentropic:  T_out,s = T_in * pr^((k-1)/k)
@@ -92,16 +82,14 @@ def spec_volume(T, P):
     return R * T / P
 
 
-# =============================================================================
-# 3. CYCLE SOLVER
-# =============================================================================
+# --- Solvers ---
 def solve_cycle(intercool, regen, real, pr=rp, T_max=T3):
     """Solve one configuration.  Returns a dict with states and performance."""
     ec, et, ef = (eta_c, eta_t, eps) if real else (1.0, 1.0, 1.0)
     P2 = pr * P1
     states = {"1": (T1, P1)}
 
-    # ---- compression -------------------------------------------------------
+    # compression
     if intercool:
         Pi = math.sqrt(P1 * P2)                       # optimal intermediate pressure
         T2a, w1 = compressor(T1, Pi / P1, ec)         # stage 1
@@ -116,10 +104,10 @@ def solve_cycle(intercool, regen, real, pr=rp, T_max=T3):
         q_ic = 0.0
     states["2"] = (T2, P2)
 
-    # ---- expansion ---------------------------------------------------------
+    # expansion
     T4, w_t = turbine(T_max, pr, et)
 
-    # ---- regenerator -------------------------------------------------------
+    # regenerator
     if regen:
         Tx, Ty = regenerator(T2, T4, ef)
         states["x"] = (Tx, P2)
@@ -130,7 +118,7 @@ def solve_cycle(intercool, regen, real, pr=rp, T_max=T3):
     if regen:
         states["y"] = (Ty, P1)
 
-    # ---- performance -------------------------------------------------------
+    # performance
     q_in = cp * (T_max - Tx)                  # only the combustor burns fuel
     w_net = w_t - w_c
     q_out = q_in - w_net                      # first law for the whole cycle
@@ -161,9 +149,7 @@ def solve_jet(intercool):
             "fuel_air": f, "tsfc": tsfc, "q_in": q_in}
 
 
-# =============================================================================
-# 4. RUN EVERYTHING
-# =============================================================================
+# --- Main ---
 CONFIGS = [  # (name, intercool, regen)
     ("Simple", False, False),
     ("Regeneration", False, True),
@@ -173,12 +159,13 @@ CONFIGS = [  # (name, intercool, regen)
 
 
 def main():
+    RESULTS_DIR.mkdir(exist_ok=True)
     print("=" * 96)
     print(f"BRAYTON CYCLE ANALYSIS   rp = {rp:g}, T1 = {T1:g} K, T3 = {T3:g} K, "
           f"eta_c = {eta_c}, eta_t = {eta_t}, eps = {eps}")
     print("=" * 96)
 
-    # ---- 4a. main results table -------------------------------------------
+    # main results table
     rows = []
     hdr = (f"{'Configuration':<30}{'Model':<7}{'T2':>7}{'T4':>7}{'Tx':>7}{'w_c':>8}{'w_t':>8}"
            f"{'w_net':>8}{'q_in':>8}{'eta %':>7}{'BWR':>7}")
@@ -196,7 +183,7 @@ def main():
                          c["q_in"], c["q_out"], 100 * c["eta"], c["bwr"]])
     print("(temperatures in K, work and heat in kJ/kg)")
 
-    # ---- 4b. change vs the simple cycle -----------------------------------
+    # change vs the simple cycle
     print("\nChange vs simple cycle")
     for model in ("ideal", "real"):
         base = results[("Simple", model)]
@@ -208,7 +195,7 @@ def main():
             print(f"  {model:<6}{name:<30} eta {d_pts:+6.2f} points ({d_rel:+5.1f} % relative)"
                   f"   w_net {d_w:+5.1f} %")
 
-    # ---- 4c. useful limits ------------------------------------------------
+    # useful limits
     rp_regen_simple = (T3 / T1) ** (1 / (2 * EXP))       # T4 = T2 for the ideal simple cycle
     rp_regen_ic = (T3 / T1) ** (1 / (1.5 * EXP))         # T4 = T2 for the ideal intercooled cycle
     rp_max_work = (T3 / T1) ** (1 / (2 * EXP))           # max w_net, ideal simple cycle
@@ -219,7 +206,7 @@ def main():
     print(f"  rp where regeneration stops helping (simple)= {rp_regen_simple:.1f}")
     print(f"  rp where regeneration stops helping (IC)    = {rp_regen_ic:.1f}")
 
-    # ---- 4d. turbojet mode -------------------------------------------------
+    # turbojet mode
     print("\nTurbojet, sea-level static, real components")
     jet_rows = []
     for label, ic in (("Simple", False), ("Intercooling", True)):
@@ -229,14 +216,14 @@ def main():
               f"TSFC = {j['tsfc']:.1f} mg/(N-s)")
         jet_rows.append([label, j["T4"], j["P4"], j["T5"], j["Ve"], j["spec_thrust"], j["fuel_air"], j["tsfc"]])
 
-    # ---- 4e. write CSV files for MATLAB ----------------------------------
-    with open("results_summary.csv", "w", newline="") as f:
+    # write CSV files for MATLAB
+    with open(RESULTS_DIR / "results_summary.csv", "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["config", "model", "T2_K", "T4_K", "Tx_K", "wc_kJkg", "wt_kJkg", "wnet_kJkg",
                     "qin_kJkg", "qout_kJkg", "eta_pct", "bwr"])
         w.writerows([[r[0], r[1]] + [round(v, 4) for v in r[2:]] for r in rows])
 
-    with open("state_points.csv", "w", newline="") as f:
+    with open(RESULTS_DIR / "state_points.csv", "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["config", "model", "state", "T_K", "P_kPa", "s_kJkgK", "v_m3kg"])
         for (name, model), c in results.items():
@@ -244,7 +231,7 @@ def main():
                 w.writerow([name, model, st, round(T, 4), round(P, 4),
                             round(entropy(T, P), 6), round(spec_volume(T, P), 6)])
 
-    with open("rp_sweep.csv", "w", newline="") as f:
+    with open(RESULTS_DIR / "rp_sweep.csv", "w", newline="") as f:
         w = csv.writer(f)
         head = ["rp"]
         for name, _, _ in CONFIGS:
@@ -261,17 +248,17 @@ def main():
                          round(ci["w_net"], 4), round(cr["w_net"], 4)]
             w.writerow(line)
 
-    with open("jet_results.csv", "w", newline="") as f:
+    with open(RESULTS_DIR / "jet_results.csv", "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["config", "T4_K", "P4_kPa", "T5_K", "Ve_ms", "spec_thrust_Nperkgs", "fuel_air", "tsfc_mgNs"])
         w.writerows([[r[0]] + [round(v, 5) for v in r[1:]] for r in jet_rows])
 
-    with open("inputs.csv", "w", newline="") as f:
+    with open(RESULTS_DIR / "inputs.csv", "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["cp", "k", "R", "T1", "P1", "T3", "rp", "eta_c", "eta_t", "eps", "eta_n", "LHV"])
         w.writerow([cp, k, R, T1, P1, T3, rp, eta_c, eta_t, eps, eta_n, LHV])
 
-    print("\nWrote results_summary.csv, state_points.csv, rp_sweep.csv, jet_results.csv, inputs.csv")
+    print(f"\nResults written to {RESULTS_DIR}")
 
 
 if __name__ == "__main__":
