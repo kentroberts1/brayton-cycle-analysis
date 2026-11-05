@@ -84,4 +84,4 @@ Things I'd add next:
 
 ## Use of AI tools
 
-I used Claude, Anthropic's AI assistant, to help write and organize the Python and MATLAB code, the plots and this documentation. The analysis setup, results and conclusions are mine, and I verified the numbers as described above.
+I used Claude AI to help write and organize the Python and MATLAB code, the plots and this documentation. The analysis setup, results and conclusions are mine, and I verified the numbers as described above.
